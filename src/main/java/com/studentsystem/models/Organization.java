@@ -1,15 +1,14 @@
 package com.studentsystem.models;
 
 import com.studentsystem.models.user.Chancellor;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
 @Data
 public class Organization {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String registrationNumber;
