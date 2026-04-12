@@ -10,6 +10,7 @@ import com.studentsystem.repository.UserRepository;
 import com.studentsystem.service.interfaces.OrganizationService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -39,9 +40,27 @@ public class OrganizationServiceImpl implements OrganizationService {
         organization.setName(organizationCreateRequest.getName());
         organization.setAddress(organizationCreateRequest.getAddress());
         organization.setChancellor((Chancellor) chancellor.get());
+        organization.setVerified(false);
         organizationRepository.save(organization);
 
         return new SuccessResponse("Organization created successfully! Awaiting verification");
+    }
+
+    public List<Organization> findPendingOrganizations() {
+        return organizationRepository.findPendingOrganizationRequests();
+    }
+    public SuccessResponse approveOrganization(String registrationNumber) {
+        Optional<Organization> organization = organizationRepository.findByRegistrationNumber(registrationNumber);
+        if (organization.isEmpty()) {
+            throw new RuntimeException("Organization not found");
+        }
+        Organization result = organization.get();
+        if (result.isVerified()) {
+            throw new RuntimeException("Organization is already verified");
+        }
+        result.setVerified(true);
+        organizationRepository.save(result);
+        return new SuccessResponse("Organization approved successfully!");
     }
     
 }
