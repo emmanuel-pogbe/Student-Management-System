@@ -9,5 +9,4 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Chancellor extends User {
-    private int chancellorID;
 }

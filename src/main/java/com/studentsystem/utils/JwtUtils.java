@@ -12,7 +12,9 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+@Component
 public class JwtUtils {
     @Value("${jwt.secret}")
     private String secretString;
@@ -47,7 +49,9 @@ public class JwtUtils {
                 .signWith(key, Jwts.SIG.HS512)
                 .compact();
     }
-
+    public String getEmailFromAccessToken(String token) {
+        return getValidatedAccessClaims(token).getSubject();
+    }
     public Claims getValidatedAccessClaims(String token) {
         Claims claims = parseClaims(token);
         return claims;
