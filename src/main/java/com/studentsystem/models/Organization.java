@@ -12,6 +12,7 @@ public class Organization {
     @Id
     private Long id;
 
+    private String registrationNumber;
     private String name;
     private String address;
 

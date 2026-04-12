@@ -9,6 +9,8 @@ import java.util.Optional;
 
 import com.studentsystem.models.user.Student;
 import com.studentsystem.models.user.Teacher;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,16 +20,21 @@ import com.studentsystem.dto.response.SuccessLogin;
 import com.studentsystem.dto.response.SuccessUserCreated;
 import com.studentsystem.exception.custom.EmailAlreadyInUseException;
 import com.studentsystem.models.User;
+import com.studentsystem.models.user.Admin;
 import com.studentsystem.models.user.Chancellor;
 import com.studentsystem.repository.UserRepository;
 import com.studentsystem.service.interfaces.UserService;
 import com.studentsystem.utils.JwtUtils;
+
 
 @Service
 public class UserServiceImpl implements UserService{
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
+
+    @Value("${studentapplication.password}")
+    private String applicationPassword;
 
     public UserServiceImpl(
         UserRepository userRepository,
@@ -46,7 +53,19 @@ public class UserServiceImpl implements UserService{
             throw new EmailAlreadyInUseException("Username already exists");
         }
         if ("ADMIN".equals(userCreateRequest.getRole())) {
-            throw new IllegalArgumentException("You can't create an admin user");
+            if (userCreateRequest.getApplicationPassword() == null) {
+                throw new IllegalArgumentException("You can't create an admin user");
+            }
+            if (!applicationPassword.equals(userCreateRequest.getApplicationPassword())) {
+                throw new IllegalArgumentException("You can't create an admin user");
+            }
+            Admin admin = new Admin();
+            admin.setEmail(userCreateRequest.getEmail());
+            admin.setPassword(passwordEncoder.encode(userCreateRequest.getPassword()));
+            admin.setRole(userCreateRequest.getRole());
+            admin.setFullName(userCreateRequest.getFullName());
+            admin.setCreated_at(LocalDateTime.now());
+            userRepository.save(admin);
         }
         if (!List.of("STUDENT","CHANCELLOR","TEACHER").contains(userCreateRequest.getRole())) {
             throw new InvalidParameterException("Role not valid");

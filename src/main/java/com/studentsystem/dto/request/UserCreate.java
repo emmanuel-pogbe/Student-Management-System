@@ -21,4 +21,7 @@ public class UserCreate {
 
     // Student specific roles
     private String level;
+
+    // Authentication for creating an admin
+    private String applicationPassword;
 }

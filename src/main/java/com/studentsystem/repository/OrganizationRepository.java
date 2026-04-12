@@ -5,7 +5,10 @@ import org.springframework.stereotype.Repository;
 
 import com.studentsystem.models.Organization;
 
+import java.util.Optional;
+
 @Repository
-public interface OrganizationRepository extends JpaRepository<Organization, Long>{    
-    
+public interface OrganizationRepository extends JpaRepository<Organization, Long>{
+
+    Optional<Organization> findByRegistrationNumber(String name);
 }
