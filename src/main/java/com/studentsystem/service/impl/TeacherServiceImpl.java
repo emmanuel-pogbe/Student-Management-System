@@ -28,6 +28,9 @@ public class TeacherServiceImpl implements TeacherService {
             throw new RuntimeException("Organization not found");
         }
         Organization org = orgToJoin.get();
+        if (!org.isVerified()) {
+            throw new RuntimeException("Organization is not verified");
+        }
         Optional<Teacher> teacher = teacherRepository.findByEmail(authentication.getName());
         if (teacher.isEmpty()) {
             throw new RuntimeException("Teacher not found");

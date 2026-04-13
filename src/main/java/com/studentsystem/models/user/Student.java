@@ -23,6 +23,6 @@ public class Student extends User {
     @ManyToOne
     private Organization organization;
 
-    @OneToMany
+    @ManyToMany
     private List<Course> courses;
 }

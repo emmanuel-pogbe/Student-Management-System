@@ -81,15 +81,14 @@ public class SecurityConfiguration {
                     response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
                 }))
             .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                .requestMatchers("/api/v1/admin/*").hasAllRoles("ADMIN")
-                .requestMatchers("/api/v1/chancellor/*").hasAllRoles("CHANCELLOR")
-                .requestMatchers("/api/v1/teacher/*").hasAllRoles("TEACHER","CHANCELLOR")
-                .requestMatchers("/api/v1/student/*").hasAllRoles("STUDENT")
+                .requestMatchers("/api/v1/admin/*").hasAnyRole("ADMIN")
+                .requestMatchers("/api/v1/chancellor/*").hasAnyRole("CHANCELLOR")
+                .requestMatchers("/api/v1/teacher/*").hasAnyRole("TEACHER","CHANCELLOR")
+                .requestMatchers("/api/v1/students/*").hasAnyRole("STUDENT")
                 .requestMatchers("/api/v1/passport/token").permitAll()
                 .requestMatchers("/api/v1/create").permitAll()
                 .anyRequest().authenticated())
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()));
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

@@ -16,6 +16,6 @@ public interface OrganizationRepository extends JpaRepository<Organization, Long
     Optional<Organization> findByChancellor(Chancellor chancellor);
     Optional<Organization> findByRegistrationNumber(String name);
 
-    @Query("SELECT org FROM Organization org WHERE org.isVerified=true")
+    @Query("SELECT org FROM Organization org WHERE org.isVerified=false")
     List<Organization> findPendingOrganizationRequests();
 }

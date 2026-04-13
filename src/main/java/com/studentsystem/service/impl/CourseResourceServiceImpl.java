@@ -56,7 +56,7 @@ public class CourseResourceServiceImpl implements CourseResourceService {
         courseResource.setResource(courseResourceCreate.getResource());
         courseResource.setCreatedAt(LocalDateTime.now());
         courseResource.setCourse(course.get());
-        courseRepository.save(course.get());
+        courseResourceRepository.save(courseResource);
         return new SuccessResponse("Course resource successfully created");
 
     }

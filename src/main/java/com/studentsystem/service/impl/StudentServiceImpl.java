@@ -38,6 +38,9 @@ public class StudentServiceImpl implements StudentService {
             throw new RuntimeException("Organization not found");
         }
         Organization org = orgToJoin.get();
+        if (!org.isVerified()) {
+            throw new RuntimeException("Organization is not verified");
+        }
         Optional<Student> student = studentRepository.findByEmail(authentication.getName());
         if (student.isEmpty()) {
             throw new RuntimeException("Student not found");
@@ -68,7 +71,12 @@ public class StudentServiceImpl implements StudentService {
         if (!passwordEncoder.matches(courseRegisterRequest.getCoursePassword(),course.getCoursePassword())) {
             throw new RuntimeException("Wrong course password");
         }
-        List<Course> currentCourses = student.getCourses();
+        if (student.getCourses() isinstanceOf List) {
+            List<Course> currentCourses = student.getCourses();
+        }
+        else {
+            List<Course> currentCourses = new ArrayList<>();
+        }
         currentCourses.add(course);
         student.setCourses(currentCourses);
         studentRepository.save(student);
