@@ -3,8 +3,6 @@ package com.studentsystem.controller;
 import com.studentsystem.dto.request.CourseRegisterRequest;
 import com.studentsystem.dto.response.CourseResourceResponse;
 import com.studentsystem.dto.response.SuccessResponse;
-import com.studentsystem.models.Course;
-import com.studentsystem.models.CourseResource;
 import com.studentsystem.service.interfaces.CourseResourceService;
 import com.studentsystem.service.interfaces.StudentService;
 import org.springframework.http.ResponseEntity;

@@ -4,6 +4,7 @@ import com.studentsystem.models.Organization;
 import com.studentsystem.models.Course;
 import com.studentsystem.models.User;
 import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.Getter;

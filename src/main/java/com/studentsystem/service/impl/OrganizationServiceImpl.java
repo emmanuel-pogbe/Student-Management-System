@@ -47,6 +47,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     public List<Organization> findPendingOrganizations() {
+        // refactor this using a DTO - this is not good
         return organizationRepository.findPendingOrganizationRequests();
     }
     public SuccessResponse approveOrganization(String registrationNumber) {

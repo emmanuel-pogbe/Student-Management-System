@@ -25,7 +25,6 @@ public class Organization {
     // one chancellor can create one organization
     @OneToOne
     @JoinColumn(name = "chancellor_id")
-    @NotNull
     private Chancellor chancellor;
 
 //    @OneToMany

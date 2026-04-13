@@ -25,7 +25,7 @@ public abstract class User {
 
     private String fullName;
 
-    private String role; //ADMIN, CHANCELLOR, TEACHER, STUDENT
+    private String userRole; //ADMIN, CHANCELLOR, TEACHER, STUDENT
 
     private LocalDateTime created_at;
 }

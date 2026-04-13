@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -63,6 +64,9 @@ public class StudentServiceImpl implements StudentService {
             throw new RuntimeException("Student not found");
         }
         Student student = stud.get();
+        if (!student.isVerified()) {
+            throw new RuntimeException("Student is not verified");
+        }
         Optional<Course> courseToAdd = courseRepository.findByCourseCodeAndOrganization(courseRegisterRequest.getCourseCode(),student.getOrganization());
         if (courseToAdd.isEmpty()) {
             throw new RuntimeException("Course not found in Organization");
@@ -71,11 +75,12 @@ public class StudentServiceImpl implements StudentService {
         if (!passwordEncoder.matches(courseRegisterRequest.getCoursePassword(),course.getCoursePassword())) {
             throw new RuntimeException("Wrong course password");
         }
-        if (student.getCourses() isinstanceOf List) {
-            List<Course> currentCourses = student.getCourses();
+        List<Course> currentCourses;
+        if (student.getCourses() != null) {
+            currentCourses = student.getCourses();
         }
         else {
-            List<Course> currentCourses = new ArrayList<>();
+            currentCourses = new ArrayList<>();
         }
         currentCourses.add(course);
         student.setCourses(currentCourses);

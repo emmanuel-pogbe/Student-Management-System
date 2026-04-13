@@ -52,6 +52,9 @@ public class UserServiceImpl implements UserService{
         if (doesExist.isPresent()) {
             throw new EmailAlreadyInUseException("Username already exists");
         }
+        if (!List.of("STUDENT","CHANCELLOR","TEACHER","ADMIN").contains(userCreateRequest.getRole())) {
+            throw new InvalidParameterException("Role not valid");
+        }
         if ("ADMIN".equals(userCreateRequest.getRole())) {
             if (userCreateRequest.getApplicationPassword() == null) {
                 throw new IllegalArgumentException("You can't create an admin user");
@@ -67,10 +70,8 @@ public class UserServiceImpl implements UserService{
             admin.setCreated_at(LocalDateTime.now());
             userRepository.save(admin);
         }
-        if (!List.of("STUDENT","CHANCELLOR","TEACHER").contains(userCreateRequest.getRole())) {
-            throw new InvalidParameterException("Role not valid");
-        }
-        if ("CHANCELLOR".equals(userCreateRequest.getRole())) {
+
+        else if ("CHANCELLOR".equals(userCreateRequest.getRole())) {
             Chancellor chancellor = new Chancellor();
             chancellor.setEmail(userCreateRequest.getEmail());
             chancellor.setPassword(passwordEncoder.encode(userCreateRequest.getPassword()));

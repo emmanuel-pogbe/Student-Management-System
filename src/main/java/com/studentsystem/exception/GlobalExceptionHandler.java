@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
         logger.error("Unhandled exception while processing request: {}", request.getRequestURI(), ex);
         return buildErrorResponse(
             "INTERNAL_SERVER_ERROR",
-            "We don't know what happened",
+            ex.getMessage(),
             HttpStatus.INTERNAL_SERVER_ERROR,
             request
         );

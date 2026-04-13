@@ -2,7 +2,9 @@ package com.studentsystem.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.studentsystem.repository.UserRepository;
-import com.studentsystem.dto.response.ErrorResponse;
+import java.time.OffsetDateTime;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +26,8 @@ import org.springframework.security.core.userdetails.User;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -46,13 +50,11 @@ public class SecurityConfiguration {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    @Bean
+    @Bean   
     public SecurityFilterChain securityFilterChain(
         HttpSecurity http,
         JwtAuthenticationFilter jwtAuthenticationFilter
     ) throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
-
         http.csrf(AbstractHttpConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable)
             .httpBasic(AbstractHttpConfigurer::disable)
@@ -61,7 +63,7 @@ public class SecurityConfiguration {
                 .authenticationEntryPoint((request, response, ex) -> {
                     response.setStatus(401);
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                    ErrorResponse errorResponse = buildErrorResponse(
+                    Map<String, Object> errorResponse = buildErrorResponse(
                         "AUTHENTICATION_REQUIRED",
                         "Authentication credentials are required to access this resource",
                         401,
@@ -72,7 +74,7 @@ public class SecurityConfiguration {
                 .accessDeniedHandler((request, response, ex) -> {
                     response.setStatus(403);
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                    ErrorResponse errorResponse = buildErrorResponse(
+                    Map<String, Object> errorResponse = buildErrorResponse(
                         "ACCESS_DENIED",
                         "You do not have permission to access this resource",
                         403,
@@ -93,7 +95,13 @@ public class SecurityConfiguration {
         return http.build();
     }
 
-    private ErrorResponse buildErrorResponse(String errorCode, String message, int status, String path) {
-        return new ErrorResponse(errorCode, message, status, path);
+    private Map<String, Object> buildErrorResponse(String errorCode, String message, int status, String path) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("errorCode", errorCode);
+        payload.put("message", message);
+        payload.put("status", status);
+        payload.put("path", path);
+        payload.put("timestamp", OffsetDateTime.now().toString());
+        return payload;
     }
 }

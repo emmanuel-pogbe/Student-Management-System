@@ -85,7 +85,7 @@ public class ChancellorServiceImpl implements ChancellorService {
     @Override
     public List<TeacherListResponse> getAllTeachers(Authentication authentication, Boolean isVerified) {
         Organization organization = getOrganizationFromChancellor(authentication);
-        List<Teacher> teachers = teacherRepository.findByOrganizationAndVerified(organization,isVerified);
+        List<Teacher> teachers = teacherRepository.findByOrganizationAndIsVerified(organization, isVerified);
         List<TeacherListResponse> teacherListResponses = new ArrayList<>();
         for (Teacher teacher : teachers) {
             teacherListResponses.add(new TeacherListResponse(
@@ -122,7 +122,7 @@ public class ChancellorServiceImpl implements ChancellorService {
     @Override
     public List<StudentListResponse> getAllStudents(Authentication authentication, Boolean isVerified) {
         Organization organization = getOrganizationFromChancellor(authentication);
-        List<Student> students = studentRepository.findByOrganizationAndVerified(organization,isVerified);
+        List<Student> students = studentRepository.findByOrganizationAndIsVerified(organization, isVerified);
         List<StudentListResponse> studentListResponses = new ArrayList<>();
         for (Student student : students) {
             studentListResponses.add(new StudentListResponse(

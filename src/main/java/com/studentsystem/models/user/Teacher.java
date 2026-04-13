@@ -21,4 +21,4 @@ public class Teacher extends User {
 
     // chancellor can approve teachers
     private boolean isVerified;
-}t
+}
