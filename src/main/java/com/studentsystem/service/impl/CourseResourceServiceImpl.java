@@ -7,6 +7,7 @@ import com.studentsystem.models.Course;
 import com.studentsystem.models.CourseResource;
 import com.studentsystem.models.Organization;
 import com.studentsystem.models.User;
+import com.studentsystem.models.user.Student;
 import com.studentsystem.models.user.Teacher;
 import com.studentsystem.repository.CourseRepository;
 import com.studentsystem.repository.CourseResourceRepository;
@@ -64,14 +65,7 @@ public class CourseResourceServiceImpl implements CourseResourceService {
     public List<CourseResourceResponse> getAllCourseResources(String courseCode, Authentication authentication) {
         String email = authentication.getName();
         Optional<User> user = userRepository.findByEmail(email);
-        if (user.isEmpty()) {
-            throw new RuntimeException("User not found");
-        }
-        if (!user.get().getRole().equals("TEACHER")) {
-            throw new RuntimeException("User is not teacher");
-        }
-        Teacher teach = (Teacher) user.get();
-        Organization organization = teach.getOrganization();
+        Organization organization = getOrganization(courseCode, user);
         Optional<Course> course = courseRepository.findByCourseCodeAndOrganization(courseCode,organization);
         if (course.isEmpty()) {
             throw new RuntimeException("Course not found in this organization");
@@ -88,5 +82,34 @@ public class CourseResourceServiceImpl implements CourseResourceService {
         }
 
         return courseResourceResponses;
+    }
+
+    private static Organization getOrganization(String courseCode, Optional<User> user) {
+        Organization organization;
+        if (user.isEmpty()) {
+            throw new RuntimeException("User not found");
+        }
+        if (user.get().getRole().equals("TEACHER")) {
+            Teacher teach = (Teacher) user.get();
+            organization = teach.getOrganization();
+        }
+        else if (user.get().getRole().equals("STUDENT")) {
+            Student stud = (Student) user.get();
+            List<Course> registeredCourses = stud.getCourses();
+            boolean found = false;
+            for (Course course : registeredCourses) {
+                if (course.getCourseCode().equals(courseCode)) {
+                    found = true;
+                }
+            }
+            if (!found) {
+                throw new RuntimeException("You are not registered in this course");
+            }
+            organization = stud.getOrganization();
+        }
+        else {
+            throw new RuntimeException("User is not a valid actor");
+        }
+        return organization;
     }
 }
