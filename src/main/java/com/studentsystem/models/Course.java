@@ -20,4 +20,7 @@ public class Course {
     @ManyToOne
     private Teacher teacher;
 
+    @ManyToOne
+    private Organization organization;
+
 }

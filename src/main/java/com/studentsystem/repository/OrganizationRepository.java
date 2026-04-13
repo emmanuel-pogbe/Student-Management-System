@@ -1,5 +1,6 @@
 package com.studentsystem.repository;
 
+import com.studentsystem.models.user.Chancellor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -12,8 +13,9 @@ import java.util.Optional;
 @Repository
 public interface OrganizationRepository extends JpaRepository<Organization, Long>{
 
+    Optional<Organization> findByChancellor(Chancellor chancellor);
     Optional<Organization> findByRegistrationNumber(String name);
 
-    @Query("SELECT * FROM Organization org WHERE org.isVerified=true")
+    @Query("SELECT org FROM Organization org WHERE org.isVerified=true")
     List<Organization> findPendingOrganizationRequests();
 }

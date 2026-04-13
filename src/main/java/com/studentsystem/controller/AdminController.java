@@ -27,6 +27,6 @@ public class AdminController {
     
     @PatchMapping("/organization/requests/accept/{number}")
     public ResponseEntity<SuccessResponse> acceptOrganizationRequest(@PathVariable("number") String registrationNumber) {
-        return null;
+        return ResponseEntity.ok(organizationService.approveOrganization(registrationNumber));
     }
 }
