@@ -81,10 +81,10 @@ public class SecurityConfiguration {
                     response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
                 }))
             .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                .requestMatchers("/api/v1/admin/*").hasAnyRole("ADMIN")
-                .requestMatchers("/api/v1/chancellor/*").hasAnyRole("CHANCELLOR")
-                .requestMatchers("/api/v1/teacher/*").hasAnyRole("TEACHER","CHANCELLOR")
-                .requestMatchers("/api/v1/students/*").hasAnyRole("STUDENT")
+                .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN")
+                .requestMatchers("/api/v1/chancellor/**").hasAnyRole("CHANCELLOR")
+                .requestMatchers("/api/v1/teacher/**").hasAnyRole("TEACHER","CHANCELLOR")
+                .requestMatchers("/api/v1/students/**").hasAnyRole("STUDENT")
                 .requestMatchers("/api/v1/passport/token").permitAll()
                 .requestMatchers("/api/v1/create").permitAll()
                 .anyRequest().authenticated())
