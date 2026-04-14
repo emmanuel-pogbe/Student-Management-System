@@ -13,7 +13,7 @@ import java.util.Optional;
 @Repository
 public interface OrganizationRepository extends JpaRepository<Organization, Long>{
 
-    Optional<Organization> findByChancellor(User chancellor);
+    Optional<Organization> findByOwnedBy(User chancellor);
     Optional<Organization> findByRegistrationNumber(String name);
 
     @Query("SELECT org FROM Organization org WHERE org.isVerified=false")

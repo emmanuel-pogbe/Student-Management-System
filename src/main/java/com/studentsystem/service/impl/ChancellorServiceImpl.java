@@ -129,7 +129,7 @@ public class ChancellorServiceImpl implements ChancellorService {
             throw new RuntimeException("Chancellor Not Found");
         }
         User chancellor = tempChancellor.get();
-        Optional<Organization> org = organizationRepository.findByChancellor(chancellor);
+        Optional<Organization> org = organizationRepository.findByOwnedBy(chancellor);
         if (org.isEmpty()) {
             throw new RuntimeException("Organization Not Found");
         }

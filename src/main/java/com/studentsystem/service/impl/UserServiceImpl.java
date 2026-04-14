@@ -51,6 +51,9 @@ public class UserServiceImpl implements UserService{
         String email = userCreateRequest.getEmail();
         Optional<User> doesExist = userRepository.findByEmail(email);
         RoleEnum userRole = userCreateRequest.getUserRole();
+        if (userRole == null) {
+            throw new RuntimeException("User role is not valid");
+        }
         if (doesExist.isPresent()) {
             throw new EmailAlreadyInUseException("Email already exists");
         }
