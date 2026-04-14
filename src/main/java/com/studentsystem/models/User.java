@@ -7,13 +7,15 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+import com.studentsystem.enums.RoleEnum;
+
 @Entity
 @Table(name = "user_table")
 @Inheritance(strategy = InheritanceType.JOINED)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public abstract class User {
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
@@ -25,7 +27,13 @@ public abstract class User {
 
     private String fullName;
 
-    private String userRole; //ADMIN, CHANCELLOR, TEACHER, STUDENT
+    @Enumerated(EnumType.STRING)
+    private RoleEnum userRole; //ADMIN, CHANCELLOR, TEACHER, STUDENT
 
     private LocalDateTime created_at;
+
+    @ManyToOne
+    private Organization organization;
+
+    private boolean isVerified;
 }

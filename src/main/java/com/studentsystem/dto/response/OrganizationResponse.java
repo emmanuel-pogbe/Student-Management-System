@@ -7,8 +7,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class StudentListResponse {
-    private String email;
-    private String fullName;
+public class OrganizationResponse {
+    private Long id;
+    private String registrationNumber;
+    private String name;
+    private String address;
     private boolean isVerified;
 }

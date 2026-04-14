@@ -3,14 +3,11 @@ package com.studentsystem.service.impl;
 import com.studentsystem.dto.response.StudentListResponse;
 import com.studentsystem.dto.response.SuccessResponse;
 import com.studentsystem.dto.response.TeacherListResponse;
+import com.studentsystem.enums.RoleEnum;
 import com.studentsystem.models.Organization;
-import com.studentsystem.models.user.Chancellor;
-import com.studentsystem.models.user.Student;
-import com.studentsystem.models.user.Teacher;
-import com.studentsystem.repository.ChancellorRepository;
+import com.studentsystem.models.User;
 import com.studentsystem.repository.OrganizationRepository;
-import com.studentsystem.repository.StudentRepository;
-import com.studentsystem.repository.TeacherRepository;
+import com.studentsystem.repository.UserRepository;
 import com.studentsystem.service.interfaces.ChancellorService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -21,60 +18,54 @@ import java.util.Optional;
 
 @Service
 public class ChancellorServiceImpl implements ChancellorService {
-    private final TeacherRepository teacherRepository;
-    private final ChancellorRepository chancellorRepository;
     private final OrganizationRepository organizationRepository;
-    private final StudentRepository studentRepository;
+    private final UserRepository userRepository;
 
-    public ChancellorServiceImpl(TeacherRepository teacherRepository, ChancellorRepository chancellorRepository, OrganizationRepository organizationRepository, StudentRepository studentRepository) {
-        this.teacherRepository = teacherRepository;
-        this.chancellorRepository = chancellorRepository;
+    public ChancellorServiceImpl(OrganizationRepository organizationRepository, UserRepository userRepository) {
         this.organizationRepository = organizationRepository;
-        this.studentRepository = studentRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
     public SuccessResponse approveTeacherApplication(String emailOfTeacher) {
         // Add some validation here later
-        Optional<Teacher> gottenUser = teacherRepository.findByEmail(emailOfTeacher);
+        Optional<User> gottenUser = userRepository.findByEmailAndUserRole(emailOfTeacher, RoleEnum.TEACHER);
         if (gottenUser.isEmpty()) {
             throw new RuntimeException("Teacher Not Found");
         }
-        Teacher teacher = gottenUser.get();
+        User teacher = gottenUser.get();
         if (teacher.isVerified()) {
             throw new RuntimeException("Teacher Already Verified");
         }
         teacher.setVerified(true);
-        teacherRepository.save(teacher);
+        userRepository.save(teacher);
         return new SuccessResponse("Teacher has been approved and can now create courses");
     }
 
     @Override
     public SuccessResponse approveStudentApplication(String emailOfStudent) {
-        Optional<Student> gottenUser = studentRepository.findByEmail(emailOfStudent);
+        Optional<User> gottenUser = userRepository.findByEmailAndUserRole(emailOfStudent, RoleEnum.STUDENT);
         if (gottenUser.isEmpty()) {
             throw new RuntimeException("Student Not Found");
         }
-        Student student = gottenUser.get();
+        User student = gottenUser.get();
         if (student.isVerified()) {
             throw new RuntimeException("Student Already Verified");
         }
         student.setVerified(true);
-        studentRepository.save(student);
+        userRepository.save(student);
         return new SuccessResponse("Student has been approved and can now register courses");
     }
 
     @Override
     public List<TeacherListResponse> getAllTeachers(Authentication authentication) {
         Organization organization = getOrganizationFromChancellor(authentication);
-        List<Teacher> teachers = teacherRepository.findByOrganization(organization);
+        List<User> teachers = userRepository.findByOrganizationAndUserRole(organization, RoleEnum.TEACHER);
         List<TeacherListResponse> teacherListResponses = new ArrayList<>();
-        for (Teacher teacher : teachers) {
+        for (User teacher : teachers) {
             teacherListResponses.add(new TeacherListResponse(
                     teacher.getEmail(),
                     teacher.getFullName(),
-                    teacher.getDepartment(),
-                    teacher.getSpecialty(),
                     teacher.isVerified()
             ));
         }
@@ -85,14 +76,12 @@ public class ChancellorServiceImpl implements ChancellorService {
     @Override
     public List<TeacherListResponse> getAllTeachers(Authentication authentication, Boolean isVerified) {
         Organization organization = getOrganizationFromChancellor(authentication);
-        List<Teacher> teachers = teacherRepository.findByOrganizationAndIsVerified(organization, isVerified);
+        List<User> teachers = userRepository.findByOrganizationAndUserRoleAndVerified(organization, RoleEnum.TEACHER,isVerified);
         List<TeacherListResponse> teacherListResponses = new ArrayList<>();
-        for (Teacher teacher : teachers) {
+        for (User teacher : teachers) {
             teacherListResponses.add(new TeacherListResponse(
                     teacher.getEmail(),
                     teacher.getFullName(),
-                    teacher.getDepartment(),
-                    teacher.getSpecialty(),
                     teacher.isVerified()
             ));
         }
@@ -104,14 +93,12 @@ public class ChancellorServiceImpl implements ChancellorService {
     @Override
     public List<StudentListResponse> getAllStudents(Authentication authentication) {
         Organization organization = getOrganizationFromChancellor(authentication);
-        List<Student> students = studentRepository.findByOrganization(organization);
+        List<User> students = userRepository.findByOrganizationAndUserRole(organization, RoleEnum.STUDENT);
         List<StudentListResponse> studentListResponses = new ArrayList<>();
-        for (Student student : students) {
+        for (User student : students) {
             studentListResponses.add(new StudentListResponse(
                     student.getEmail(),
                     student.getFullName(),
-                    student.getLevel(),
-                    student.getDepartment(),
                     student.isVerified()
             ));
         }
@@ -122,14 +109,12 @@ public class ChancellorServiceImpl implements ChancellorService {
     @Override
     public List<StudentListResponse> getAllStudents(Authentication authentication, Boolean isVerified) {
         Organization organization = getOrganizationFromChancellor(authentication);
-        List<Student> students = studentRepository.findByOrganizationAndIsVerified(organization, isVerified);
+        List<User> students = userRepository.findByOrganizationAndUserRoleAndVerified(organization, RoleEnum.STUDENT, isVerified);
         List<StudentListResponse> studentListResponses = new ArrayList<>();
-        for (Student student : students) {
+        for (User student : students) {
             studentListResponses.add(new StudentListResponse(
                     student.getEmail(),
                     student.getFullName(),
-                    student.getLevel(),
-                    student.getDepartment(),
                     student.isVerified()
             ));
         }
@@ -138,12 +123,12 @@ public class ChancellorServiceImpl implements ChancellorService {
 
     private Organization getOrganizationFromChancellor(Authentication authentication) {
         String email = authentication.getName();
-        Optional<Chancellor> tempChancellor =  chancellorRepository.findByEmail(email);
+        Optional<User> tempChancellor =  userRepository.findByEmailAndUserRole(email,RoleEnum.CHANCELLOR);
         // some verification should occur
         if (tempChancellor.isEmpty()) {
             throw new RuntimeException("Chancellor Not Found");
         }
-        Chancellor chancellor = tempChancellor.get();
+        User chancellor = tempChancellor.get();
         Optional<Organization> org = organizationRepository.findByChancellor(chancellor);
         if (org.isEmpty()) {
             throw new RuntimeException("Organization Not Found");

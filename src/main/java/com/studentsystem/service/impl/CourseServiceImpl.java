@@ -2,9 +2,9 @@ package com.studentsystem.service.impl;
 
 import com.studentsystem.dto.request.CourseCreate;
 import com.studentsystem.dto.response.SuccessResponse;
+import com.studentsystem.enums.RoleEnum;
 import com.studentsystem.models.Course;
 import com.studentsystem.models.User;
-import com.studentsystem.models.user.Teacher;
 import com.studentsystem.repository.CourseRepository;
 import com.studentsystem.repository.UserRepository;
 import com.studentsystem.service.interfaces.CourseService;
@@ -29,14 +29,11 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public SuccessResponse createCourse(CourseCreate courseCreate, Authentication authentication) {
         String email = authentication.getName();
-        Optional<User> user = userRepository.findByEmail(email);
+        Optional<User> user = userRepository.findByEmailAndUserRole(email,RoleEnum.TEACHER);
         if (user.isEmpty()) {
             throw new RuntimeException("User not found");
         }
-        if (!user.get().getRole().equals("TEACHER")) {
-            throw new RuntimeException("User is not teacher");
-        }
-        Teacher teach = (Teacher) user.get();
+        User teach = user.get();
         if (courseRepository.findByCourseCodeAndOrganization(courseCreate.getCourseCode(),teach.getOrganization()).isPresent()) {
             throw new RuntimeException("Course already exists");
         }
@@ -45,7 +42,7 @@ public class CourseServiceImpl implements CourseService {
         course.setCourseName(courseCreate.getCourseName());
         course.setCoursePassword(passwordEncoder.encode(courseCreate.getCoursePassword()));
         course.setOrganization(teach.getOrganization());
-        course.setTeacher(teach);
+        course.setCreatedBy(teach);
         courseRepository.save(course);
         return new SuccessResponse("Course created!");
     }

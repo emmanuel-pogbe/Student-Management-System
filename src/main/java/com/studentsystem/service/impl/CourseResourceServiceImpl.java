@@ -3,15 +3,13 @@ package com.studentsystem.service.impl;
 import com.studentsystem.dto.request.CourseResourceCreate;
 import com.studentsystem.dto.response.CourseResourceResponse;
 import com.studentsystem.dto.response.SuccessResponse;
+import com.studentsystem.enums.RoleEnum;
 import com.studentsystem.models.Course;
 import com.studentsystem.models.CourseResource;
 import com.studentsystem.models.Organization;
 import com.studentsystem.models.User;
-import com.studentsystem.models.user.Student;
-import com.studentsystem.models.user.Teacher;
 import com.studentsystem.repository.CourseRepository;
 import com.studentsystem.repository.CourseResourceRepository;
-import com.studentsystem.repository.TeacherRepository;
 import com.studentsystem.repository.UserRepository;
 import com.studentsystem.service.interfaces.CourseResourceService;
 import org.springframework.security.core.Authentication;
@@ -24,13 +22,11 @@ import java.util.Optional;
 
 @Service
 public class CourseResourceServiceImpl implements CourseResourceService {
-    private final TeacherRepository teacherRepository;
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final CourseResourceRepository courseResourceRepository;
 
-    public CourseResourceServiceImpl(TeacherRepository teacherRepository, UserRepository userRepository, CourseRepository courseRepository, CourseResourceRepository courseResourceRepository) {
-        this.teacherRepository = teacherRepository;
+    public CourseResourceServiceImpl(UserRepository userRepository, CourseRepository courseRepository, CourseResourceRepository courseResourceRepository) {
         this.userRepository = userRepository;
         this.courseRepository = courseRepository;
         this.courseResourceRepository = courseResourceRepository;
@@ -39,17 +35,14 @@ public class CourseResourceServiceImpl implements CourseResourceService {
     @Override
     public SuccessResponse createCourseResource(String courseCode, CourseResourceCreate courseResourceCreate, Authentication authentication) {
         String email = authentication.getName();
-        Optional<User> user = userRepository.findByEmail(email);
+        Optional<User> user = userRepository.findByEmailAndUserRole(email,RoleEnum.TEACHER);
         if (user.isEmpty()) {
             throw new RuntimeException("User not found");
         }
-        if (!user.get().getRole().equals("TEACHER")) {
-            throw new RuntimeException("User is not teacher");
-        }
-        Teacher teach = (Teacher) user.get();
-        Optional<Course> course = courseRepository.findByCourseCodeAndOrganization(courseCode, teach.getOrganization());
+        User teach = user.get();
+        Optional<Course> course = courseRepository.findByCourseCodeAndOrganizationAndCreatedBy(courseCode, teach.getOrganization(),teach);
         if (course.isEmpty()) {
-            throw new RuntimeException("Course not found in this organization");
+            throw new RuntimeException("Course not found or you don't own it");
         }
         CourseResource courseResource = new CourseResource();
         courseResource.setResourceTitle(courseResourceCreate.getResourceTitle());
@@ -89,23 +82,9 @@ public class CourseResourceServiceImpl implements CourseResourceService {
         if (user.isEmpty()) {
             throw new RuntimeException("User not found");
         }
-        if (user.get().getRole().equals("TEACHER")) {
-            Teacher teach = (Teacher) user.get();
-            organization = teach.getOrganization();
-        }
-        else if (user.get().getRole().equals("STUDENT")) {
-            Student stud = (Student) user.get();
-            List<Course> registeredCourses = stud.getCourses();
-            boolean found = false;
-            for (Course course : registeredCourses) {
-                if (course.getCourseCode().equals(courseCode)) {
-                    found = true;
-                }
-            }
-            if (!found) {
-                throw new RuntimeException("You are not registered in this course");
-            }
-            organization = stud.getOrganization();
+        if (List.of("TEACHER","CHANCELLOR","STUDENT").contains(user.get().getUserRole().name())) {
+            User userProfile =  user.get();
+            organization = userProfile.getOrganization();
         }
         else {
             throw new RuntimeException("User is not a valid actor");

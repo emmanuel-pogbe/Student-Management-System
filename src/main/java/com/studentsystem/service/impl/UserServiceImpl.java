@@ -7,9 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.studentsystem.models.user.Student;
-import com.studentsystem.models.user.Teacher;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,10 +15,11 @@ import com.studentsystem.dto.request.UserCreate;
 import com.studentsystem.dto.request.UserLoginRequest;
 import com.studentsystem.dto.response.SuccessLogin;
 import com.studentsystem.dto.response.SuccessUserCreated;
+import com.studentsystem.enums.RoleEnum;
 import com.studentsystem.exception.custom.EmailAlreadyInUseException;
+import com.studentsystem.models.StudentProfile;
 import com.studentsystem.models.User;
-import com.studentsystem.models.user.Admin;
-import com.studentsystem.models.user.Chancellor;
+import com.studentsystem.repository.StudentProfileRepository;
 import com.studentsystem.repository.UserRepository;
 import com.studentsystem.service.interfaces.UserService;
 import com.studentsystem.utils.JwtUtils;
@@ -30,6 +28,7 @@ import com.studentsystem.utils.JwtUtils;
 @Service
 public class UserServiceImpl implements UserService{
     private final UserRepository userRepository;
+    private final StudentProfileRepository studentProfileRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
 
@@ -39,82 +38,93 @@ public class UserServiceImpl implements UserService{
     public UserServiceImpl(
         UserRepository userRepository,
         PasswordEncoder passwordEncoder,
-        JwtUtils jwtUtils
+        JwtUtils jwtUtils,
+        StudentProfileRepository studentProfileRepository
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtils = jwtUtils;
+        this.studentProfileRepository = studentProfileRepository;
     }
 
     public SuccessUserCreated createUser(UserCreate userCreateRequest) {
         String email = userCreateRequest.getEmail();
         Optional<User> doesExist = userRepository.findByEmail(email);
+        RoleEnum userRole = userCreateRequest.getUserRole();
         if (doesExist.isPresent()) {
-            throw new EmailAlreadyInUseException("Username already exists");
+            throw new EmailAlreadyInUseException("Email already exists");
         }
-        if (!List.of("STUDENT","CHANCELLOR","TEACHER","ADMIN").contains(userCreateRequest.getRole())) {
+        if (!List.of("STUDENT","CHANCELLOR","TEACHER","ADMIN").contains(userRole.name())) {
             throw new InvalidParameterException("Role not valid");
         }
-        if ("ADMIN".equals(userCreateRequest.getRole())) {
+        if ("ADMIN".equals(userRole.name())) {
             if (userCreateRequest.getApplicationPassword() == null) {
                 throw new IllegalArgumentException("You can't create an admin user");
             }
             if (!applicationPassword.equals(userCreateRequest.getApplicationPassword())) {
                 throw new IllegalArgumentException("You can't create an admin user");
             }
-            Admin admin = new Admin();
+            User admin = new User();
             admin.setEmail(userCreateRequest.getEmail());
             admin.setPassword(passwordEncoder.encode(userCreateRequest.getPassword()));
-            admin.setRole(userCreateRequest.getRole());
+            admin.setUserRole(userRole);
             admin.setFullName(userCreateRequest.getFullName());
             admin.setCreated_at(LocalDateTime.now());
             userRepository.save(admin);
         }
 
-        else if ("CHANCELLOR".equals(userCreateRequest.getRole())) {
-            Chancellor chancellor = new Chancellor();
+        else if ("CHANCELLOR".equals(userRole.name())) {
+            User chancellor = new User();
             chancellor.setEmail(userCreateRequest.getEmail());
             chancellor.setPassword(passwordEncoder.encode(userCreateRequest.getPassword()));
-            chancellor.setRole(userCreateRequest.getRole());
+            chancellor.setUserRole(userCreateRequest.getUserRole());
             chancellor.setFullName(userCreateRequest.getFullName());
             chancellor.setCreated_at(LocalDateTime.now());
             userRepository.save(chancellor);
         }
-        else if ("TEACHER".equals(userCreateRequest.getRole())) {
+        else if ("TEACHER".equals(userRole.name())) {
             if (userCreateRequest.getDepartment() == null || userCreateRequest.getSpecialty() == null) {
                 throw new InvalidParameterException("Missing specialty or department");
             }
-            Teacher teacher = new Teacher();
+            User teacher = new User();
             teacher.setEmail(userCreateRequest.getEmail());
             teacher.setPassword(passwordEncoder.encode(userCreateRequest.getPassword()));
-            teacher.setRole(userCreateRequest.getRole());
+            teacher.setUserRole(userRole);
             teacher.setFullName(userCreateRequest.getFullName());
             teacher.setCreated_at(LocalDateTime.now());
 
-            teacher.setDepartment(userCreateRequest.getDepartment());
-            teacher.setSpecialty(userCreateRequest.getSpecialty());
+            // extra attributes for teacher in the future
+            // teacher.setDepartment(userCreateRequest.getDepartment());
+            // teacher.setSpecialty(userCreateRequest.getSpecialty());
             userRepository.save(teacher);
         }
-        else if ("STUDENT".equals(userCreateRequest.getRole())) {
+        else if ("STUDENT".equals(userRole.name())) {
             if (userCreateRequest.getLevel().isEmpty() || userCreateRequest.getDepartment().isEmpty()) {
                 throw new InvalidParameterException("Missing specialty or department");
             }
-            Student student = new Student();
+            User student = new User();
             student.setEmail(userCreateRequest.getEmail());
             student.setPassword(passwordEncoder.encode(userCreateRequest.getPassword()));
-            student.setRole(userCreateRequest.getRole());
+            student.setUserRole(userRole);
             student.setFullName(userCreateRequest.getFullName());
             student.setCreated_at(LocalDateTime.now());
+            
+            // extra attributes for students in the future
+            StudentProfile profileInfo = new StudentProfile();
+            profileInfo.setDepartment(userCreateRequest.getDepartment());
+            profileInfo.setLevel(userCreateRequest.getLevel());
+            profileInfo.setUser(student);
 
-            student.setDepartment(userCreateRequest.getDepartment());
-            student.setLevel(userCreateRequest.getLevel());
             userRepository.save(student);
+
+            // save extra student information
+            studentProfileRepository.save(profileInfo);
         }
 
         return new SuccessUserCreated(
                 userCreateRequest.getEmail(),
                 userCreateRequest.getFullName(),
-                userCreateRequest.getRole()
+                userRole
         );
     }
     
@@ -135,7 +145,7 @@ public class UserServiceImpl implements UserService{
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", existingUser.getEmail());
-        claims.put("role", existingUser.getRole());
+        claims.put("role", existingUser.getUserRole());
         claims.put("fullName", existingUser.getFullName());
         claims.put("userId", existingUser.getUserId());
 

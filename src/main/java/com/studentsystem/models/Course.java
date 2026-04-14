@@ -1,6 +1,5 @@
 package com.studentsystem.models;
 
-import com.studentsystem.models.user.Teacher;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -18,7 +17,7 @@ public class Course {
 
     // A teacher can create multiple courses
     @ManyToOne
-    private Teacher teacher;
+    private User createdBy;
 
     @ManyToOne
     private Organization organization;

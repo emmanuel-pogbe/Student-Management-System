@@ -1,12 +1,7 @@
 package com.studentsystem.models;
 
-import com.studentsystem.models.user.Chancellor;
-import com.studentsystem.models.user.Student;
-import com.studentsystem.models.user.Teacher;
 import jakarta.persistence.*;
 import lombok.Data;
-
-import java.util.List;
 
 @Entity
 @Data
@@ -25,7 +20,7 @@ public class Organization {
     // one chancellor can create one organization
     @OneToOne
     @JoinColumn(name = "chancellor_id")
-    private Chancellor chancellor;
+    private User ownedBy;
 
 //    @OneToMany
 //    private List<Teacher> teachers;

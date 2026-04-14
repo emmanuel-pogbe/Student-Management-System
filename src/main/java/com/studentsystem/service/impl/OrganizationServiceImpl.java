@@ -1,15 +1,17 @@
 package com.studentsystem.service.impl;
 
 import com.studentsystem.dto.request.OrganizationCreateRequest;
+import com.studentsystem.dto.response.OrganizationResponse;
 import com.studentsystem.dto.response.SuccessResponse;
+import com.studentsystem.enums.RoleEnum;
 import com.studentsystem.models.Organization;
 import com.studentsystem.models.User;
-import com.studentsystem.models.user.Chancellor;
 import com.studentsystem.repository.OrganizationRepository;
 import com.studentsystem.repository.UserRepository;
 import com.studentsystem.service.interfaces.OrganizationService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,12 +26,9 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     public SuccessResponse createOrganizationApplication(OrganizationCreateRequest organizationCreateRequest, String authenticatedEmail) {
-        Optional<User> chancellor = userRepository.findByEmail(authenticatedEmail);
+        Optional<User> chancellor = userRepository.findByEmailAndUserRole(authenticatedEmail,RoleEnum.CHANCELLOR);
         if (!chancellor.isPresent()) {
             throw new RuntimeException("User not found");
-        }
-        if (!"CHANCELLOR".equals(chancellor.get().getRole())) {
-            throw new RuntimeException("User is not a chancellor");
         }
         Optional<Organization> doesExist = organizationRepository.findByRegistrationNumber(organizationCreateRequest.getRegistrationNumber());
         if (doesExist.isPresent()) {
@@ -39,16 +38,26 @@ public class OrganizationServiceImpl implements OrganizationService {
         organization.setRegistrationNumber(organizationCreateRequest.getRegistrationNumber());
         organization.setName(organizationCreateRequest.getName());
         organization.setAddress(organizationCreateRequest.getAddress());
-        organization.setChancellor((Chancellor) chancellor.get());
+        organization.setOwnedBy(chancellor.get());
         organization.setVerified(false);
         organizationRepository.save(organization);
 
         return new SuccessResponse("Organization created successfully! Awaiting verification");
     }
 
-    public List<Organization> findPendingOrganizations() {
-        // refactor this using a DTO - this is not good
-        return organizationRepository.findPendingOrganizationRequests();
+    public List<OrganizationResponse> findPendingOrganizations() {
+        List<Organization> organizations = organizationRepository.findPendingOrganizationRequests();
+        List<OrganizationResponse> organizationResponses = new ArrayList<>();
+        for (Organization organization: organizations) {
+                organizationResponses.add(new OrganizationResponse(
+                organization.getId(),
+                organization.getRegistrationNumber(),
+                organization.getName(),
+                organization.getAddress(),
+                organization.isVerified()
+            ));
+        }
+        return organizationResponses;
     }
     public SuccessResponse approveOrganization(String registrationNumber) {
         Optional<Organization> organization = organizationRepository.findByRegistrationNumber(registrationNumber);

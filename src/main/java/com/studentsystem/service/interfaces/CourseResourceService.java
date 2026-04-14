@@ -3,7 +3,6 @@ package com.studentsystem.service.interfaces;
 import com.studentsystem.dto.request.CourseResourceCreate;
 import com.studentsystem.dto.response.CourseResourceResponse;
 import com.studentsystem.dto.response.SuccessResponse;
-import com.studentsystem.models.CourseResource;
 import org.springframework.security.core.Authentication;
 
 import java.util.List;

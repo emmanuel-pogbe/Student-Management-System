@@ -1,5 +1,7 @@
 package com.studentsystem.dto.request;
 
+import com.studentsystem.enums.RoleEnum;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,7 +13,7 @@ public class UserCreate {
     private String email;
     private String password;
     private String fullName;
-    private String role;
+    private RoleEnum userRole;
 
     // Teacher- and student-specific roles
     private String department;

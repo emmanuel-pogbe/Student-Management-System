@@ -1,10 +1,11 @@
 package com.studentsystem.service.impl;
 
 import com.studentsystem.dto.response.SuccessResponse;
+import com.studentsystem.enums.RoleEnum;
 import com.studentsystem.models.Organization;
-import com.studentsystem.models.user.Teacher;
+import com.studentsystem.models.User;
 import com.studentsystem.repository.OrganizationRepository;
-import com.studentsystem.repository.TeacherRepository;
+import com.studentsystem.repository.UserRepository;
 import com.studentsystem.service.interfaces.TeacherService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -13,11 +14,11 @@ import java.util.Optional;
 
 @Service
 public class TeacherServiceImpl implements TeacherService {
-    private final TeacherRepository teacherRepository;
+    private final UserRepository userRepository;
     private final OrganizationRepository organizationRepository;
 
-    public TeacherServiceImpl(TeacherRepository teacherRepository, OrganizationRepository organizationRepository) {
-        this.teacherRepository = teacherRepository;
+    public TeacherServiceImpl(UserRepository userRepository, OrganizationRepository organizationRepository) {
+        this.userRepository = userRepository;
         this.organizationRepository = organizationRepository;
     }
 
@@ -31,17 +32,17 @@ public class TeacherServiceImpl implements TeacherService {
         if (!org.isVerified()) {
             throw new RuntimeException("Organization is not verified");
         }
-        Optional<Teacher> teacher = teacherRepository.findByEmail(authentication.getName());
+        Optional<User> teacher = userRepository.findByEmailAndUserRole(authentication.getName(),RoleEnum.TEACHER);
         if (teacher.isEmpty()) {
             throw new RuntimeException("Teacher not found");
         }
-        Teacher teach = teacher.get();
+        User teach = teacher.get();
         if (teach.getOrganization() != null) {
             throw new RuntimeException("Already have an organization");
         }
         teach.setOrganization(org);
         teach.setVerified(false);
-        teacherRepository.save(teach);
+        userRepository.save(teach);
         return new SuccessResponse("Teacher requested join successfully, Awaiting verification from Chancellor");
     }
 }

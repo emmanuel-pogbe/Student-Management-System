@@ -2,32 +2,33 @@ package com.studentsystem.service.impl;
 
 import com.studentsystem.dto.request.CourseRegisterRequest;
 import com.studentsystem.dto.response.SuccessResponse;
+import com.studentsystem.enums.RoleEnum;
 import com.studentsystem.models.Course;
 import com.studentsystem.models.Organization;
-import com.studentsystem.models.user.Student;
-import com.studentsystem.models.user.Teacher;
+import com.studentsystem.models.StudentCourse;
+import com.studentsystem.models.User;
 import com.studentsystem.repository.CourseRepository;
 import com.studentsystem.repository.OrganizationRepository;
-import com.studentsystem.repository.StudentRepository;
-import com.studentsystem.repository.TeacherRepository;
+import com.studentsystem.repository.StudentCourseRepository;
+import com.studentsystem.repository.UserRepository;
 import com.studentsystem.service.interfaces.StudentService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Service
 public class StudentServiceImpl implements StudentService {
+    private final StudentCourseRepository studentCourseRepository;
     private final OrganizationRepository organizationRepository;
-    private final StudentRepository studentRepository;
+    private final UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final PasswordEncoder passwordEncoder;
-    public StudentServiceImpl(OrganizationRepository organizationRepository, StudentRepository studentRepository, CourseRepository courseRepository, PasswordEncoder passwordEncoder) {
+    public StudentServiceImpl(OrganizationRepository organizationRepository, UserRepository userRepository, CourseRepository courseRepository, PasswordEncoder passwordEncoder, StudentCourseRepository studentCourseRepository) {
         this.organizationRepository = organizationRepository;
-        this.studentRepository = studentRepository;
+        this.studentCourseRepository = studentCourseRepository;
+        this.userRepository = userRepository;
         this.courseRepository = courseRepository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -42,28 +43,28 @@ public class StudentServiceImpl implements StudentService {
         if (!org.isVerified()) {
             throw new RuntimeException("Organization is not verified");
         }
-        Optional<Student> student = studentRepository.findByEmail(authentication.getName());
+        Optional<User> student = userRepository.findByEmailAndUserRole(authentication.getName(),RoleEnum.STUDENT);
         if (student.isEmpty()) {
             throw new RuntimeException("Student not found");
         }
-        Student stud = student.get();
+        User stud = student.get();
         if (stud.getOrganization() != null) {
             throw new RuntimeException("Already have an organization");
         }
         stud.setOrganization(org);
         stud.setVerified(false);
-        studentRepository.save(stud);
+        userRepository.save(stud);
         return new SuccessResponse("Student requested join successfully, Awaiting verification from Chancellor");
     }
 
     @Override
     public SuccessResponse registerCourse(CourseRegisterRequest courseRegisterRequest, Authentication authentication) {
         String email = authentication.getName();
-        Optional<Student> stud = studentRepository.findByEmail(email);
+        Optional<User> stud = userRepository.findByEmailAndUserRole(email, RoleEnum.STUDENT);
         if (stud.isEmpty()) {
             throw new RuntimeException("Student not found");
         }
-        Student student = stud.get();
+        User student = stud.get();
         if (!student.isVerified()) {
             throw new RuntimeException("Student is not verified");
         }
@@ -75,16 +76,12 @@ public class StudentServiceImpl implements StudentService {
         if (!passwordEncoder.matches(courseRegisterRequest.getCoursePassword(),course.getCoursePassword())) {
             throw new RuntimeException("Wrong course password");
         }
-        List<Course> currentCourses;
-        if (student.getCourses() != null) {
-            currentCourses = student.getCourses();
+        try {
+            StudentCourse studentCourse = new StudentCourse(student,course);
+            studentCourseRepository.save(studentCourse);
+        } catch (Exception e) {
+            throw new RuntimeException("Course not added");
         }
-        else {
-            currentCourses = new ArrayList<>();
-        }
-        currentCourses.add(course);
-        student.setCourses(currentCourses);
-        studentRepository.save(student);
 
         return new SuccessResponse("Course registered successfully");
     }

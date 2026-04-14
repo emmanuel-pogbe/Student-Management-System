@@ -39,7 +39,7 @@ public class SecurityConfiguration {
             .map(user -> User
                 .withUsername(user.getEmail())
                 .password(user.getPassword())
-                .roles(user.getRole())
+                .roles(user.getUserRole().name())
                 .build())
             .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }

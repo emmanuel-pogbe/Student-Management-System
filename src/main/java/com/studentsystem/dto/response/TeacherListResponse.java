@@ -10,7 +10,9 @@ import lombok.NoArgsConstructor;
 public class TeacherListResponse {
     private String email;
     private String fullName;
-    private String department;
-    private String specialty;
     private boolean isVerified;
+
+    // Extra roles for future use
+    // private String department;
+    // private String specialty;
 }

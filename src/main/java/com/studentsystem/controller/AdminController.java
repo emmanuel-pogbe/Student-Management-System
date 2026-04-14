@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.studentsystem.dto.response.OrganizationResponse;
 import com.studentsystem.dto.response.SuccessResponse;
-import com.studentsystem.models.Organization;
 
 @RequestMapping("/api/v1/admin")
 @RestController
@@ -21,7 +21,7 @@ public class AdminController {
         this.organizationService = organizationService;
     }
     @GetMapping("/organization/requests")
-    public ResponseEntity<List<Organization>> viewPendingRequests() {
+    public ResponseEntity<List<OrganizationResponse>> viewPendingRequests() {
         return ResponseEntity.ok(organizationService.findPendingOrganizations());
     }
     
