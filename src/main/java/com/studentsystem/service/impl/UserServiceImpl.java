@@ -103,7 +103,7 @@ public class UserServiceImpl implements UserService{
         }
         else if ("STUDENT".equals(userRole.name())) {
             if (userCreateRequest.getLevel().isEmpty() || userCreateRequest.getDepartment().isEmpty()) {
-                throw new InvalidParameterException("Missing specialty or department");
+                throw new InvalidParameterException("Missing level or department");
             }
             User student = new User();
             student.setEmail(userCreateRequest.getEmail());

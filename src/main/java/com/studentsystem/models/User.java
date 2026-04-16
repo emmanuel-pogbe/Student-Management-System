@@ -36,4 +36,13 @@ public class User {
     private Organization organization;
 
     private boolean isVerified;
+
+    public User(String email, String password, String fullName, RoleEnum userRole, LocalDateTime created_at, boolean isVerified) {
+        this.email = email;
+        this.password = password;
+        this.fullName = fullName;
+        this.userRole = userRole;
+        this.created_at = created_at;
+        this.isVerified = isVerified;
+    }
 }
