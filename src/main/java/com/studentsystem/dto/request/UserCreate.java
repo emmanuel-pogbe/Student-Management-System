@@ -26,4 +26,11 @@ public class UserCreate {
 
     // Authentication for creating an admin
     private String applicationPassword;
+
+    public UserCreate(String email, String password, String fullName, RoleEnum userRole) {
+        this.email = email;
+        this.password = password;
+        this.fullName = fullName;
+        this.userRole = userRole;
+    }
 }
