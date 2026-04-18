@@ -5,6 +5,7 @@ import com.studentsystem.dto.request.UserCreate;
 import com.studentsystem.dto.response.SuccessUserCreated;
 import com.studentsystem.enums.RoleEnum;
 import com.studentsystem.exception.custom.EmailAlreadyInUseException;
+import com.studentsystem.mapper.UserMapper;
 import com.studentsystem.models.StudentProfile;
 import com.studentsystem.models.User;
 import com.studentsystem.repository.StudentProfileRepository;
@@ -12,11 +13,11 @@ import com.studentsystem.repository.UserRepository;
 import com.studentsystem.service.impl.UserServiceImpl;
 import com.studentsystem.utils.JwtUtils;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
@@ -24,22 +25,26 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest(classes = UserServiceImpl.class)
 public class UserServiceImplTest {
-    @Mock
+    @MockitoBean
     private UserRepository userRepository;
-    @Mock
+    @MockitoBean
     private StudentProfileRepository studentProfileRepository;
-    @Mock
+    @MockitoBean
     private PasswordEncoder passwordEncoder;
-    @Mock
+    @MockitoBean
     private JwtUtils jwtUtils;
+    @MockitoBean
+    private UserMapper userMapper;
 
-
-    @InjectMocks
+        @Autowired
     private UserServiceImpl userService;
+
+        @Value("${studentapplication.password}")
+        private String password;
 
     @Nested
     @DisplayName("Testing Create user method")
@@ -62,10 +67,11 @@ public class UserServiceImplTest {
                     LocalDateTime.now(),
                     true
             );
+            when(passwordEncoder.encode(anyString())).thenReturn("encoded-password");
         }
 
         @Test
-        @DisplayName("What happens on a successful user creation attempt")
+        @DisplayName("What happens on a successful Student user creation attempt")
         void whatHappensSuccessfulUserCreation() {
             testCreatedUser.setUserRole(RoleEnum.STUDENT);
             testCreatedUser.setEmail("test@gmail.com");
@@ -77,19 +83,53 @@ public class UserServiceImplTest {
                     .thenReturn(userModel);
             when(studentProfileRepository.save(any()))
                     .thenReturn(new StudentProfile("300 Level","Test department 1"));
+            when(userMapper.dtoToModel(any()))
+                    .thenReturn(userModel);
 
             // When
             SuccessUserCreated response = Assertions.assertDoesNotThrow(() -> userService.createUser(testCreatedUser));
 
             // Then
+            Assertions.assertNotNull(response);
             Assertions.assertEquals("test@gmail.com",response.getEmail());
+            verify(userRepository,times(1)).save(any(User.class));
+            verify(studentProfileRepository,times(1)).save(any(StudentProfile.class));
+        }
+
+        @Test
+        @DisplayName("What happens on a successful Admin user creation attempt")
+        void whatHappensSuccessfulAdminCreation() {
+
+
+            testCreatedUser.setUserRole(RoleEnum.ADMIN);
+            testCreatedUser.setEmail("test@gmail.com");
+            testCreatedUser.setLevel("300 Level");
+            testCreatedUser.setDepartment("Test Department 1");
+            testCreatedUser.setApplicationPassword(password);
+            when(userRepository.findByEmail("test@gmail.com"))
+                    .thenReturn(Optional.empty());
+            when(userRepository.save(any(User.class)))
+                    .thenReturn(userModel);
+            when(studentProfileRepository.save(any()))
+                    .thenReturn(new StudentProfile("300 Level","Test department 1"));
+            when(userMapper.dtoToModel(any()))
+                    .thenReturn(userModel);
+
+            // When
+            SuccessUserCreated response = Assertions.assertDoesNotThrow(() -> userService.createUser(testCreatedUser));
+
+            // Then
+            Assertions.assertNotNull(response);
+            Assertions.assertEquals("test@gmail.com",response.getEmail());
+            verify(userRepository,times(1)).save(any(User.class));
+                        verify(studentProfileRepository,never()).save(any(StudentProfile.class));
         }
 
         @Test
         @DisplayName("What happens a teacher create attempt occurs with missing arguments")
         void shouldRaiseErrorOnTeacherCreateWithMissingParameters() {
             // Given & When & Then
-            InvalidParameterException invalidParameterException = Assertions.assertThrows(InvalidParameterException.class, () -> {
+                        Assertions.assertThrows(InvalidParameterException.class, () -> {
                 userService.createUser(testCreatedUser);
             });
         }

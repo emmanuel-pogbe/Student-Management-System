@@ -1,5 +1,7 @@
 package com.studentsystem.dto.request;
 
+import java.time.LocalDateTime;
+
 import com.studentsystem.enums.RoleEnum;
 
 import lombok.AllArgsConstructor;
@@ -26,6 +28,8 @@ public class UserCreate {
 
     // Authentication for creating an admin
     private String applicationPassword;
+
+    private LocalDateTime created_at;
 
     public UserCreate(String email, String password, String fullName, RoleEnum userRole) {
         this.email = email;
