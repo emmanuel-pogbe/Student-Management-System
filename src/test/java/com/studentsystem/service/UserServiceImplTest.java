@@ -2,6 +2,8 @@ package com.studentsystem.service;
 
 
 import com.studentsystem.dto.request.UserCreate;
+import com.studentsystem.dto.request.UserLoginRequest;
+import com.studentsystem.dto.response.SuccessLogin;
 import com.studentsystem.dto.response.SuccessUserCreated;
 import com.studentsystem.enums.RoleEnum;
 import com.studentsystem.exception.custom.EmailAlreadyInUseException;
@@ -173,6 +175,134 @@ public class UserServiceImplTest {
 
             // Then
             Assertions.assertEquals("You can't create an admin user", noPassword.getMessage());
+        }
+    }   
+
+    @Nested
+    @DisplayName("Testing access tokens")
+    class GetAccessTokenTest {
+        @Test
+        @DisplayName("What happens on null UserLoginRequest")
+        void whatHappensOnNullUserLoginRequest() {
+                // given
+                UserLoginRequest testUserLoginRequest = null;
+                // when
+                IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class, () -> userService.getAccessToken(testUserLoginRequest));
+                // then
+                Assertions.assertEquals("Email and password are required", exception.getMessage());
+                verify(userRepository,never()).findByEmail(anyString());
+        }
+
+        @Test
+        @DisplayName("What happens on null UserLoginRequest email")
+        void whatHappensOnNullUserLoginRequestEmail() {
+                // given
+                UserLoginRequest testUserLoginRequest = new UserLoginRequest(
+                        null,
+                        "fake_password"
+                );
+                // when
+                IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class, () -> userService.getAccessToken(testUserLoginRequest));
+                // then
+                Assertions.assertEquals("Email and password are required", exception.getMessage());
+                verify(userRepository,never()).findByEmail(anyString());
+        }
+
+        @Test
+        @DisplayName("What happens on null UserLoginRequest password")
+        void whatHappensOnNullUserLoginRequestPassword() {
+                // given
+                UserLoginRequest testUserLoginRequest = new UserLoginRequest(
+                        "test@gmail.com",
+                        null
+                );
+                // when
+                IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class, () -> userService.getAccessToken(testUserLoginRequest));
+                // then
+                Assertions.assertEquals("Email and password are required", exception.getMessage());
+                verify(userRepository,never()).findByEmail(anyString());
+        }
+
+        @Test
+        @DisplayName("What happens on Email not found")
+        void whatHappensOnEmailNotFound() {
+                // given
+                UserLoginRequest testUserLoginRequest = new UserLoginRequest(
+                        "test@gmail.com",
+                        "password1234"
+                );
+                when(userRepository.findByEmail(anyString()))
+                .thenReturn(Optional.empty());
+                // when
+                RuntimeException exception = Assertions.assertThrows(RuntimeException.class, () -> userService.getAccessToken(testUserLoginRequest));
+                // then
+                Assertions.assertEquals("Username or Password incorrect", exception.getMessage());
+                verify(userRepository,times(1)).findByEmail(anyString());
+        }
+
+        @Test
+        @DisplayName("What happens on Password incorrect")
+        void whatHappensOnPasswordIncorrect() {
+                // given
+                User userModel = new User(
+                    "testUser@gmail.com",
+                    "encoded password",
+                    "Pogbe Emmanuel",
+                    RoleEnum.STUDENT,
+                    LocalDateTime.now(),
+                    true
+                );
+                UserLoginRequest testUserLoginRequest = new UserLoginRequest(
+                        "test@gmail.com",
+                        "password1234"
+                );
+                when(userRepository.findByEmail(anyString()))
+                .thenReturn(Optional.of(userModel));
+                when(passwordEncoder.matches(anyString(),anyString()))
+                .thenReturn(false);
+
+                // when
+                RuntimeException exception = Assertions.assertThrows(RuntimeException.class, () -> userService.getAccessToken(testUserLoginRequest));
+                // then
+                Assertions.assertEquals("Username or Password incorrect", exception.getMessage());
+                verify(userRepository,times(1)).findByEmail(anyString());
+                verify(passwordEncoder,times(1)).matches(anyString(),anyString());
+
+        }
+
+        @Test
+        @DisplayName("What happens when email and password are correct")
+        void whatHappensWhenCredentialsAreCorrect() {
+                // given
+                User userModel = new User(
+                    "test@gmail.com",
+                    "encoded password",
+                    "Pogbe Emmanuel",
+                    RoleEnum.STUDENT,
+                    LocalDateTime.now(),
+                    true
+                );
+                UserLoginRequest testUserLoginRequest = new UserLoginRequest(
+                        "test@gmail.com",
+                        "password1234"
+                );
+                when(userRepository.findByEmail("test@gmail.com"))
+                        .thenReturn(Optional.of(userModel));
+                when(passwordEncoder.matches("password1234", "encoded password"))
+                        .thenReturn(true);
+                when(jwtUtils.generateAccessToken(eq("test@gmail.com"), any()))
+                        .thenReturn("test-access-token");
+
+                // when
+                SuccessLogin response = Assertions.assertDoesNotThrow(() -> userService.getAccessToken(testUserLoginRequest));
+
+                // then
+                Assertions.assertNotNull(response);
+                Assertions.assertEquals("test-access-token", response.getAccessToken());
+                Assertions.assertEquals(900, response.getExpiresIn());
+                verify(userRepository, times(1)).findByEmail("test@gmail.com");
+                verify(passwordEncoder, times(1)).matches("password1234", "encoded password");
+                verify(jwtUtils, times(1)).generateAccessToken(eq("test@gmail.com"), any());
         }
     }
 
