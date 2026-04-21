@@ -1,5 +1,6 @@
 package com.studentsystem.service.impl;
 
+import com.studentsystem.dto.request.CourseResourceAlertEmail;
 import com.studentsystem.dto.request.CourseResourceCreate;
 import com.studentsystem.dto.response.CourseResourceResponse;
 import com.studentsystem.dto.response.SuccessResponse;
@@ -12,6 +13,9 @@ import com.studentsystem.repository.CourseRepository;
 import com.studentsystem.repository.CourseResourceRepository;
 import com.studentsystem.repository.UserRepository;
 import com.studentsystem.service.interfaces.CourseResourceService;
+import com.studentsystem.service.interfaces.KafkaService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -25,11 +29,15 @@ public class CourseResourceServiceImpl implements CourseResourceService {
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final CourseResourceRepository courseResourceRepository;
+    private final KafkaService kafkaService;
 
-    public CourseResourceServiceImpl(UserRepository userRepository, CourseRepository courseRepository, CourseResourceRepository courseResourceRepository) {
+    private static final Logger logger = LoggerFactory.getLogger(CourseResourceServiceImpl.class);
+
+    public CourseResourceServiceImpl(UserRepository userRepository, CourseRepository courseRepository, CourseResourceRepository courseResourceRepository, KafkaService kafkaService) {
         this.userRepository = userRepository;
         this.courseRepository = courseRepository;
         this.courseResourceRepository = courseResourceRepository;
+        this.kafkaService = kafkaService;
     }
 
     @Override
@@ -50,7 +58,13 @@ public class CourseResourceServiceImpl implements CourseResourceService {
         courseResource.setCreatedAt(LocalDateTime.now());
         courseResource.setCourse(course.get());
         courseResourceRepository.save(courseResource);
-        return new SuccessResponse("Course resource successfully created");
+
+        CourseResourceAlertEmail newEmail = new CourseResourceAlertEmail();
+        newEmail.setTitle("New Course Resource for "+course.get().getCourseName());
+        newEmail.setMessage("A new resource has been posted ->"+courseResourceCreate.getResourceTitle()+" visit your page to see it");
+        newEmail.setCourse(course.get());
+        kafkaService.sendMessage(newEmail);
+        return new SuccessResponse("Course resource successfully created and all students have been notified");
 
     }
 

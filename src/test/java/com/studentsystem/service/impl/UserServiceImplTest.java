@@ -1,4 +1,4 @@
-package com.studentsystem.service;
+package com.studentsystem.service.impl;
 
 
 import com.studentsystem.dto.request.UserCreate;
@@ -12,7 +12,6 @@ import com.studentsystem.models.StudentProfile;
 import com.studentsystem.models.User;
 import com.studentsystem.repository.StudentProfileRepository;
 import com.studentsystem.repository.UserRepository;
-import com.studentsystem.service.impl.UserServiceImpl;
 import com.studentsystem.utils.JwtUtils;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;

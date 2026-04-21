@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService{
     @Value("${studentapplication.password}")
     private String applicationPassword;
 
-    private UserMapper userMapper;
+    private final UserMapper userMapper;
 
     public UserServiceImpl(
         UserRepository userRepository,

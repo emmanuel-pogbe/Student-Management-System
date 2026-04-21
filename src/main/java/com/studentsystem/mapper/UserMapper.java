@@ -4,7 +4,7 @@ import com.studentsystem.dto.request.UserCreate;
 import com.studentsystem.models.User;
 import org.mapstruct.Mapper;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface UserMapper {
-    public User dtoToModel(UserCreate userCreate);
+    User dtoToModel(UserCreate userCreate);
 }

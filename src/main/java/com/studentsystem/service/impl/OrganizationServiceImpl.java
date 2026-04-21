@@ -25,6 +25,7 @@ public class OrganizationServiceImpl implements OrganizationService {
         this.userRepository = userRepository;
     }
 
+
     public SuccessResponse createOrganizationApplication(OrganizationCreateRequest organizationCreateRequest, String authenticatedEmail) {
         Optional<User> chancellor = userRepository.findByEmailAndUserRole(authenticatedEmail,RoleEnum.CHANCELLOR);
         if (!chancellor.isPresent()) {
@@ -45,6 +46,7 @@ public class OrganizationServiceImpl implements OrganizationService {
         return new SuccessResponse("Organization created successfully! Awaiting verification");
     }
 
+
     public List<OrganizationResponse> findPendingOrganizations() {
         List<Organization> organizations = organizationRepository.findPendingOrganizationRequests();
         List<OrganizationResponse> organizationResponses = new ArrayList<>();
@@ -55,7 +57,7 @@ public class OrganizationServiceImpl implements OrganizationService {
                 organization.getName(),
                 organization.getAddress(),
                 organization.isVerified()
-            ));
+            )); 
         }
         return organizationResponses;
     }

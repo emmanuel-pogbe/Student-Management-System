@@ -24,6 +24,7 @@ public class Organization {
 
 //    @OneToMany
 //    private List<Teacher> teachers;
+
 //
 //    @OneToMany
 //    private List<Student> students;
