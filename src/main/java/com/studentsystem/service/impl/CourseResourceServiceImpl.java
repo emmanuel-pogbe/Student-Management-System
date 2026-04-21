@@ -62,7 +62,7 @@ public class CourseResourceServiceImpl implements CourseResourceService {
         CourseResourceAlertEmail newEmail = new CourseResourceAlertEmail();
         newEmail.setTitle("New Course Resource for "+course.get().getCourseName());
         newEmail.setMessage("A new resource has been posted ->"+courseResourceCreate.getResourceTitle()+" visit your page to see it");
-        newEmail.setCourse(course.get());
+        newEmail.setCourseId(course.get().getId());
         kafkaService.sendMessage(newEmail);
         return new SuccessResponse("Course resource successfully created and all students have been notified");
 

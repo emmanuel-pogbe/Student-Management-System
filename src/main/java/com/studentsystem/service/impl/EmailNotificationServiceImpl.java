@@ -1,7 +1,9 @@
 package com.studentsystem.service.impl;
 
 import com.studentsystem.dto.request.CourseResourceAlertEmail;
+import com.studentsystem.models.Course;
 import com.studentsystem.models.User;
+import com.studentsystem.repository.CourseRepository;
 import com.studentsystem.repository.StudentCourseRepository;
 import com.studentsystem.service.interfaces.EmailNotificationService;
 import org.slf4j.Logger;
@@ -17,12 +19,14 @@ import java.util.List;
 public class EmailNotificationServiceImpl implements EmailNotificationService {
     private JavaMailSender mailSender;
 
+    private CourseRepository courseRepository;
     private StudentCourseRepository studentCourseRepository;
 
     private static final Logger log = LoggerFactory.getLogger(EmailNotificationServiceImpl.class);
 
-    public EmailNotificationServiceImpl(JavaMailSender mailSender, StudentCourseRepository studentCourseRepository) {
+    public EmailNotificationServiceImpl(JavaMailSender mailSender, CourseRepository courseRepository, StudentCourseRepository studentCourseRepository) {
         this.mailSender = mailSender;
+        this.courseRepository = courseRepository;
         this.studentCourseRepository = studentCourseRepository;
     }
 
@@ -39,7 +43,9 @@ public class EmailNotificationServiceImpl implements EmailNotificationService {
     @KafkaListener(topics = "student_notification", groupId = "studentgroup")
     public void listenToEmailMessages(CourseResourceAlertEmail courseResourceAlertEmail) {
         log.info("Sending email to all students offering {}",courseResourceAlertEmail.getTitle());
-        List<User> allStudentsOfferingCourse = studentCourseRepository.findAllStudentsByCourse(courseResourceAlertEmail.getCourse());
+        Course course = courseRepository.findById(courseResourceAlertEmail.getCourseId())
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+        List<User> allStudentsOfferingCourse = studentCourseRepository.findAllStudentsByCourseId(course.getId());
         for (User user : allStudentsOfferingCourse) {
             log.info("Pretending to send emails to students");
             String studentEmail = user.getEmail();

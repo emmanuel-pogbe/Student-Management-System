@@ -17,6 +17,6 @@ public interface StudentCourseRepository extends JpaRepository<StudentCourse, Lo
 
     List<StudentCourse> findByCourse(Course course);
 
-    @Query("select distinct sc.user from StudentCourse sc where sc.course = :course")
-    List<User> findAllStudentsByCourse(@Param("course") Course course);
+    @Query("select distinct sc.user from StudentCourse sc where sc.course.id = :courseId")
+    List<User> findAllStudentsByCourseId(@Param("courseId") Long courseId);
 }
