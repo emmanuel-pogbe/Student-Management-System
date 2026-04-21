@@ -31,8 +31,6 @@ public class CourseResourceServiceImpl implements CourseResourceService {
     private final CourseResourceRepository courseResourceRepository;
     private final KafkaService kafkaService;
 
-    private static final Logger logger = LoggerFactory.getLogger(CourseResourceServiceImpl.class);
-
     public CourseResourceServiceImpl(UserRepository userRepository, CourseRepository courseRepository, CourseResourceRepository courseResourceRepository, KafkaService kafkaService) {
         this.userRepository = userRepository;
         this.courseRepository = courseRepository;

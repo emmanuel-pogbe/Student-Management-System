@@ -6,7 +6,6 @@ import com.studentsystem.models.Organization;
 import com.studentsystem.models.User;
 import com.studentsystem.repository.OrganizationRepository;
 import com.studentsystem.repository.UserRepository;
-import com.studentsystem.service.interfaces.KafkaService;
 import com.studentsystem.service.interfaces.TeacherService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
