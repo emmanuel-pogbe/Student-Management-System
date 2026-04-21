@@ -29,7 +29,7 @@ public class EmailNotificationServiceImpl implements EmailNotificationService {
     @Override
     public void sendEmail(String to, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("mauyonpogbe@gmail.com");
+        message.setFrom("noreply@moodle.com");
         message.setTo(to);
         message.setSubject(subject);
         message.setText(body);
@@ -43,6 +43,7 @@ public class EmailNotificationServiceImpl implements EmailNotificationService {
         for (User user : allStudentsOfferingCourse) {
             log.info("Pretending to send emails to students");
             String studentEmail = user.getEmail();
+            this.sendEmail(studentEmail, courseResourceAlertEmail.getTitle(), courseResourceAlertEmail.getMessage());
         }
         log.info("Done sending emails to all students offering {}",courseResourceAlertEmail.getTitle());
     }
