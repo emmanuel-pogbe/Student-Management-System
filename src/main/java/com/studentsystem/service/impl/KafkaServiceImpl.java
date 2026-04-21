@@ -13,10 +13,6 @@ public class KafkaServiceImpl implements KafkaService {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    @Override
-    public void sendMessage(String message) {
-        kafkaTemplate.send("student_notification", message);
-    }
 
     @Override
     public void sendMessage(CourseResourceAlertEmail email) {
